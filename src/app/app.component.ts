@@ -15,13 +15,12 @@ export class AppComponent implements AfterContentInit, OnDestroy, OnInit {
 
   private cmpRef;
   
-  text = 'yay!'
   items = [
     '111',
     '222',
     '333'
   ];
-  testEmitValue = 'not emitted'
+  testEmitValue = 'Nothing emitted'
   
   htmlForm: FormGroup;
   htmlCode: string;
@@ -31,7 +30,7 @@ export class AppComponent implements AfterContentInit, OnDestroy, OnInit {
     private compiler: Compiler) { }
 
   ngOnInit(): void {
-    this.htmlCode = `<div style="border: solid; border-color:green;"><p (click)="clicked(test)">This is a dynamic component {{test}}</p></div>`;
+    this.htmlCode = `<div style="border: solid; border-color:blue"><p (click)="clicked(test)" style="cursor:pointer">Click me! {{test}}</p></div>`;
     this.createHtmlForm();
   }
 
@@ -62,7 +61,7 @@ export class AppComponent implements AfterContentInit, OnDestroy, OnInit {
           const cmpRef = this.vc.createComponent(f);
           cmpRef.instance.test = item;
           cmpRef.instance.testEmit.subscribe(data => {
-            this.testEmitValue = data;
+            this.testEmitValue = `${data} just emitted!`;
           })
         });
       })
