@@ -1,0 +1,11 @@
+{{testEmitValue}}
+<ng-template #vc (testEmit)="testEmitValue = $event"></ng-template>
+<hr>
+
+<form [formGroup]="htmlForm">
+    <ngx-monaco-editor [options]="{theme: 'vs', language: 'html'}" formControlName="htmlCode">
+    </ngx-monaco-editor>
+</form>
+<button (click)="save()">Save</button>
+
+<pre>{{htmlForm?.value | json}}</pre>
