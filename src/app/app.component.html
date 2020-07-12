@@ -1,11 +1,20 @@
-{{testEmitValue}}
-<ng-template #vc (testEmit)="testEmitValue = $event"></ng-template>
-<hr>
 
+{{testEmitValue}}
 <form [formGroup]="htmlForm">
-    <ngx-monaco-editor [options]="{theme: 'vs', language: 'html'}" formControlName="htmlCode">
-    </ngx-monaco-editor>
+    <div>
+        <h1>Edit grid</h1>
+        <ngx-monaco-editor [options]="{theme: 'grid', language: 'html'}" formControlName="gridCode">
+        </ngx-monaco-editor>
+    </div>
+    <div>
+        <h1>Edit tile</h1>
+        <ngx-monaco-editor [options]="{theme: 'tiles', language: 'html'}" formControlName="tileCode">
+        </ngx-monaco-editor>
+    </div>
 </form>
 <button (click)="save()">Save</button>
-
-<pre>{{htmlForm?.value | json}}</pre>
+<hr>
+<h1>Results</h1>
+<div *ngIf="htmlForm">
+    <ng-template #grid></ng-template>
+</div>

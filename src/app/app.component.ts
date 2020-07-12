@@ -2,8 +2,8 @@ import {
   Component, ViewChild, OnDestroy,
   Compiler, ViewContainerRef, NgModule, AfterContentInit, OnInit
 } from '@angular/core';
-import { TileComponent } from './tile.component'
 import { FormGroup, FormControl } from '@angular/forms';
+import { GridComponent } from './grid.component';
 
 @Component({
   selector: 'app',
@@ -11,75 +11,71 @@ import { FormGroup, FormControl } from '@angular/forms';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements AfterContentInit, OnDestroy, OnInit {
-  @ViewChild('vc', { read: ViewContainerRef }) vc: ViewContainerRef;
+  @ViewChild('grid', { read: ViewContainerRef }) grid: ViewContainerRef;
 
-  private cmpRef;
-  
   items = [
     '111',
     '222',
     '333'
   ];
   testEmitValue = 'Nothing emitted'
-  
+
   htmlForm: FormGroup;
-  htmlCode: string;
+  tileCode: string;
+  gridCode: string;
   editorOptions: any = { formatOnType: true, scrollBeyondLastLine: false, readOnly: true, theme: 'vs', glyphMargin: false, folding: false, scrollbar: { vertical: 'hidden', handleMouseWheel: false }, minimap: { enabled: false }, automaticLayout: true };
 
   constructor(
     private compiler: Compiler) { }
 
   ngOnInit(): void {
-    this.htmlCode = `<div style="border: solid; border-color:blue"><p (click)="clicked(test)" style="cursor:pointer">Click me! {{test}}</p></div>`;
+    this.tileCode = `<div style="border: solid; border-color:blue"><p (click)="clicked(test)" style="cursor:pointer">Click me! {{test}}</p></div>`;
+    this.gridCode = `<div style="display: grid; grid-template-columns: 100px 100px 100px; grid-gap: 20px;"><ng-template #tiles></ng-template></div>`;
     this.createHtmlForm();
   }
 
   ngOnDestroy() {
-    if (this.vc) {
-      this.vc.clear();
+    if (this.grid) {
+      this.grid.clear();
     }
   }
 
-  ngAfterContentInit() {
-    this.addComponent();
+  async ngAfterContentInit() {
+    await this.compileGrid();
   }
 
-  private addComponent() {
-    if (this.vc) {
-      this.vc.clear();
+  private async compileGrid(): Promise<any> {
+    if (this.grid) {
+      this.grid.clear();
     }
 
-    const code = this.htmlForm?.get('htmlCode')?.value ? this.htmlForm.get('htmlCode').value : this.htmlCode;
-    const tmpCmp = this.getCompByNamespace('lets.do.it', code);
+    const code = this.htmlForm?.get('gridCode')?.value ? this.htmlForm.get('gridCode').value : this.gridCode;
+    const tileCode = this.htmlForm?.get('tileCode')?.value ? this.htmlForm.get('tileCode').value : this.tileCode;
+    const tmpCmp = Component({ template: code })(GridComponent)
     const tmpModule = NgModule({ declarations: [tmpCmp] })(class {
     });
 
-    this.cmpRef = this.compiler.compileModuleAndAllComponentsAsync(tmpModule)
+    await this.compiler.compileModuleAndAllComponentsAsync(tmpModule)
       .then((factories) => {
         const f = factories.componentFactories[0];
-        this.items.forEach(item => {
-          const cmpRef = this.vc.createComponent(f);
-          cmpRef.instance.test = item;
-          cmpRef.instance.testEmit.subscribe(data => {
-            this.testEmitValue = `${data} just emitted!`;
-          })
-        });
+        const cmpRef = this.grid.createComponent(f);
+        cmpRef.instance.tileCode = tileCode;
+        cmpRef.instance.items = this.items;
+        cmpRef.instance.itemClicked.subscribe(data => {
+          this.testEmitValue = data;
+        })
+        return cmpRef;
       })
   }
 
-  save() {
-    this.addComponent();
+  async save() {
+    await this.compileGrid();
   }
 
   createHtmlForm() {
     this.htmlForm = new FormGroup({
-      htmlCode: new FormControl(this.htmlCode),
+      tileCode: new FormControl(this.tileCode),
+      gridCode: new FormControl(this.gridCode),
     });
-  }
-
-  getCompByNamespace(namespace: string, template: string) {
-    if (namespace == 'lets.do.it') {
-      return Component({ template: template })(TileComponent);
-    }
   }
 }
